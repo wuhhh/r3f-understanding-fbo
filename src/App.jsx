@@ -3,7 +3,7 @@ import React, { useEffect, useMemo, useRef, useState } from "react";
 import { Canvas, createPortal, extend, useFrame } from "@react-three/fiber";
 import { OrbitControls, PerspectiveCamera, shaderMaterial, useFBO, useTexture } from "@react-three/drei";
 
-const FBOScene = () => {
+const FBOScene = ({ ...props }) => {
   const texture = useTexture("/plants.jpg");
 
   const ColorMaterial = shaderMaterial(
