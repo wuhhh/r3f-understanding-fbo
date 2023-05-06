@@ -1,7 +1,7 @@
 import * as THREE from "three";
 import React, { useEffect, useMemo, useRef } from "react";
-import { Canvas, createPortal, extend, useFrame, useThree } from "@react-three/fiber";
-import { OrbitControls, OrthographicCamera, PerspectiveCamera, shaderMaterial, useFBO, useTexture } from "@react-three/drei";
+import { Canvas, createPortal, extend, useFrame } from "@react-three/fiber";
+import { OrbitControls, PerspectiveCamera, shaderMaterial, useFBO, useTexture } from "@react-three/drei";
 
 const Scene = () => {
   const texture = useTexture("/plants.jpg");
