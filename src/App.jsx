@@ -45,7 +45,7 @@ const FBOScene = () => {
 
   const setPlaneSize = () => {
     var distance = cam.current.position.z - textureMesh.current.position.z;
-    var aspect = window.innerWidth / window.innerHeight;
+    var aspect = textureA.viewport.width / textureA.viewport.height;
     var vFov = (cam.current.fov * Math.PI) / 180;
     setPlaneWidth(planeHeight * aspect);
     setPlaneHeight(2 * Math.tan(vFov / 2) * distance);
