@@ -42,12 +42,19 @@ const Scene = () => {
   let textureA = useFBO();
   let textureB = useFBO();
 
-  useFrame(state => {
+  const planeSize = () => {
     var distance = cam.current.position.z - textureMesh.current.position.z;
     var aspect = window.innerWidth / window.innerHeight;
     var vFov = (cam.current.fov * Math.PI) / 180;
-    planeHeightAtDistance.current = 2 * Math.tan(vFov / 2) * distance;
-    planeWidthAtDistance.current = planeHeightAtDistance.current * aspect;
+
+    return [
+      (planeHeightAtDistance.current = 2 * Math.tan(vFov / 2) * distance),
+      (planeWidthAtDistance.current = planeHeightAtDistance.current * aspect),
+    ];
+  };
+
+  useFrame(state => {
+    planeSize();
 
     state.gl.setRenderTarget(textureB);
     state.gl.render(scene, cam.current);
@@ -60,7 +67,9 @@ const Scene = () => {
     textureMesh.current.material.uniforms.uTexture.value = textureA.texture;
   });
 
-  useEffect(() => {}, []);
+  useEffect(() => {
+    planeSize();
+  }, []);
 
   return (
     <>
