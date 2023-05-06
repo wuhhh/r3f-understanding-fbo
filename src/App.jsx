@@ -58,8 +58,7 @@ const Scene = () => {
     <>
       {createPortal(
         <>
-          <PerspectiveCamera ref={cam} position={[0, 0, 3.291]} />
-          {/* <PerspectiveCamera ref={cam} manual position={[0, 0, 2]} /> */}
+          <PerspectiveCamera ref={cam} position={[0, 0, 3]} />
           <mesh ref={textureMesh} position={[0, 0, 0]} scale={[width, height, 1]}>
             <planeGeometry />
             <colorMaterial uTexture={texture} />
@@ -88,7 +87,8 @@ const Scene = () => {
 
 const App = () => {
   return (
-    <Canvas linear flat camera={{ position: [0, 0, 2] }}>
+    <Canvas linear flat>
+      <PerspectiveCamera makeDefault position={[0, 0, 3]} />
       <Scene />
       <OrbitControls makeDefault />
       <mesh scale={0.25} position={[0, 1, 0.5]}>
