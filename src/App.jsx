@@ -1,11 +1,9 @@
 import * as THREE from "three";
-import React, { useMemo, useRef } from "react";
+import React, { useEffect, useMemo, useRef } from "react";
 import { Canvas, createPortal, extend, useFrame, useThree } from "@react-three/fiber";
 import { OrbitControls, OrthographicCamera, PerspectiveCamera, shaderMaterial, useFBO, useTexture } from "@react-three/drei";
 
 const Scene = () => {
-  const { width, height } = useThree(state => state.viewport);
-
   const texture = useTexture("/plants.jpg");
 
   const ColorMaterial = shaderMaterial(
@@ -32,6 +30,8 @@ const Scene = () => {
 
   extend({ ColorMaterial });
 
+  const planeHeightAtDistance = useRef();
+  const planeWidthAtDistance = useRef();
   const textureMesh = useRef();
   const cam = useRef();
   const scene = useMemo(() => {
@@ -43,6 +43,12 @@ const Scene = () => {
   let textureB = useFBO();
 
   useFrame(state => {
+    var distance = cam.current.position.z - textureMesh.current.position.z;
+    var aspect = window.innerWidth / window.innerHeight;
+    var vFov = (cam.current.fov * Math.PI) / 180;
+    planeHeightAtDistance.current = 2 * Math.tan(vFov / 2) * distance;
+    planeWidthAtDistance.current = planeHeightAtDistance.current * aspect;
+
     state.gl.setRenderTarget(textureB);
     state.gl.render(scene, cam.current);
     state.gl.setRenderTarget(null);
@@ -54,13 +60,15 @@ const Scene = () => {
     textureMesh.current.material.uniforms.uTexture.value = textureA.texture;
   });
 
+  useEffect(() => {}, []);
+
   return (
     <>
       {createPortal(
         <>
           <PerspectiveCamera ref={cam} position={[0, 0, 3]} />
-          <mesh ref={textureMesh} position={[0, 0, 0]} scale={[width, height, 1]}>
-            <planeGeometry />
+          <mesh ref={textureMesh} position={[0, 0, 0]}>
+            <planeGeometry args={[planeWidthAtDistance.current, planeHeightAtDistance.current]} />
             <colorMaterial uTexture={texture} />
           </mesh>
         </>,
@@ -88,7 +96,7 @@ const Scene = () => {
 const App = () => {
   return (
     <Canvas linear flat>
-      <PerspectiveCamera makeDefault position={[0, 0, 3]} />
+      <PerspectiveCamera makeDefault position={[0, 0, 4]} />
       <Scene />
       <OrbitControls makeDefault />
       <mesh scale={0.25} position={[0, 1, 0.5]}>
