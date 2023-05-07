@@ -28,7 +28,7 @@ const ColorMaterial = shaderMaterial(
 extend({ ColorMaterial });
 
 const FBOScene = ({ ...props }) => {
-  useTexture("/plants.jpg", texture => {
+  const texture = useTexture("/plants.jpg", texture => {
     meshPortal.current.material.uniforms.uTexture.value = texture;
   });
 
@@ -37,10 +37,7 @@ const FBOScene = ({ ...props }) => {
   const meshTextureB = useRef();
   const meshPortal = useRef();
   const cam = useRef();
-  const scene = useMemo(() => {
-    const scene = new THREE.Scene();
-    return scene;
-  });
+  const [scene] = useState(() => new THREE.Scene());
 
   let textureA = useFBO();
   let textureB = useFBO();
