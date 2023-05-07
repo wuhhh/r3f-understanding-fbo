@@ -28,7 +28,7 @@ const ColorMaterial = shaderMaterial(
 extend({ ColorMaterial });
 
 const FBOScene = ({ ...props }) => {
-  const texture = useTexture("/plants.jpg", texture => {
+  useTexture("/plants.jpg", texture => {
     meshPortal.current.material.uniforms.uTexture.value = texture;
   });
 
