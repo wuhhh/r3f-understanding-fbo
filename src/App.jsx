@@ -1,10 +1,10 @@
 import * as THREE from "three";
-import React, { useEffect, useMemo, useRef, useState } from "react";
-import { Canvas, createPortal, extend, useFrame } from "@react-three/fiber";
-import { OrbitControls, PerspectiveCamera, shaderMaterial, useFBO, useTexture } from "@react-three/drei";
+import React, { useMemo, useRef } from "react";
+import { Canvas, extend, useFrame, useThree } from "@react-three/fiber";
+import { OrbitControls, shaderMaterial, useFBO, useTexture } from "@react-three/drei";
 
-const ColorMaterial = shaderMaterial(
-  { uTexture: new THREE.Texture(), uTime: 0 },
+const colorMaterial = shaderMaterial(
+  { uTexture: null, uTime: 0 },
   // vertex
   /* glsl */ `
 		varying vec2 vUv;
@@ -25,78 +25,51 @@ const ColorMaterial = shaderMaterial(
 	`
 );
 
-extend({ ColorMaterial });
+extend({ ColorMaterial: colorMaterial });
 
 const FBOScene = ({ ...props }) => {
-  useTexture("/plants.jpg", texture => {
-    meshPortal.current.material.uniforms.uTexture.value = texture;
-  });
+  const texture = useTexture("/plants.jpg");
 
-  const meshDisplay = useRef();
-  const meshTextureA = useRef();
-  const meshTextureB = useRef();
-  const meshPortal = useRef();
-  const cam = useRef();
-  const [scene] = useState(() => new THREE.Scene());
+  // Create buffer scene
+  const bufferScene = useMemo(() => new THREE.Scene(), []);
 
+  // Default camera
+  const camera = useThree(state => state.camera);
+
+  // Viewport size
+  const { width, height } = useThree(state => state.viewport);
+
+  // Create 2 buffer textures
   let textureA = useFBO();
   let textureB = useFBO();
 
-  const setPlaneSize = () => {
-    var distance = cam.current.position.z - meshPortal.current.position.z;
-    var aspect = textureA.viewport.width / textureA.viewport.height;
-    var vFov = (cam.current.fov * Math.PI) / 180;
-    let planeHeight = 2 * Math.tan(vFov / 2) * distance;
-    let planeWidth = planeHeight * aspect;
-    meshPortal.current.scale.y = planeHeight;
-    meshPortal.current.scale.x = planeWidth;
-  };
+  // Pass textureA to shader
+  const bufferMaterial = new colorMaterial({ uTexture: texture });
+
+  // Buffer plane scaled to viewport size
+  const plane = new THREE.PlaneGeometry(1, 1);
+  plane.scale(width, height, 1);
+  const bufferObject = new THREE.Mesh(plane, bufferMaterial);
+  bufferScene.add(bufferObject);
+
+  const meshDisplay = useRef();
 
   useFrame((state, delta) => {
-    setPlaneSize();
     state.gl.setRenderTarget(textureB);
-    state.gl.render(scene, cam.current);
+    state.gl.render(bufferScene, camera);
     state.gl.setRenderTarget(null);
-    var t = textureA;
+    const t = textureA;
     textureA = textureB;
     textureB = t;
-    meshPortal.current.material.uniforms.uTexture.value = textureA.texture;
-
-    meshDisplay.current.rotation.z += delta;
-    meshTextureA.current.rotation.z += delta;
-    meshTextureB.current.rotation.z += delta;
+    meshDisplay.current.material.map = textureB.texture;
+    bufferMaterial.uniforms.uTexture.value = textureA.texture;
   });
-
-  useEffect(() => {
-    setPlaneSize();
-  }, []);
 
   return (
     <>
-      {createPortal(
-        <>
-          <PerspectiveCamera ref={cam} position={[0, 0, 3]} />
-          <mesh ref={meshPortal} position={[0, 0, 0]}>
-            <planeGeometry />
-            <colorMaterial />
-          </mesh>
-        </>,
-        scene
-      )}
-      {/* DISPLAY */}
-      <mesh ref={meshDisplay} position={[-1.5, 0, 0]}>
+      <mesh ref={meshDisplay} scale={[width, height, 1]} position={[0, 0, 0]}>
         <planeGeometry />
         <meshBasicMaterial map={textureB.texture} />
-      </mesh>
-      {/* TEXTURE B / FBO 1 */}
-      <mesh ref={meshTextureB} position={[0, 0, 0]}>
-        <planeGeometry />
-        <colorMaterial uTexture={textureB.texture} />
-      </mesh>
-      {/* TEXTURE A / FBO 2 */}
-      <mesh ref={meshTextureA} position={[1.5, 0, 0]}>
-        <planeGeometry />
-        <colorMaterial uTexture={textureA.texture} />
       </mesh>
     </>
   );
